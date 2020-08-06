@@ -48,11 +48,11 @@ app = dash.Dash()
 #since we want to represent a time series line chart. The object is a dictionary with 
 #data = go.Scatter object and layout = go.Layout
 graph_line_figure = {'data':[go.Scatter(x=df.iloc[:,0],
-                               y=df.iloc[:,1],
-                               mode='lines')],
+                                        y=df.iloc[:,1],
+                                        mode='lines')],
                      'layout':go.Layout(title='FRED',
-                               xaxis={'title':df.columns[0]},
-                               yaxis={'title':df.columns[1]}) }
+                                        xaxis={'title':df.columns[0]},
+                                        yaxis={'title':'Interest Rate'}) }
 
 
                         
@@ -102,46 +102,36 @@ app.layout = html.Div([ html.H1('Mortgage Rate Dash'),
                State('date_picker', 'start_date'),
                State('date_picker', 'end_date')])
 def output(n_clicks, symbol, start_date, end_date):
-    #To get data from FRED (Federal Reserve Economic Data )
-    # start = datetime.datetime (2005, 5, 1)
-    # end = datetime.datetime (2020, 6, 1)
-    # df = pdr.DataReader('MORTGAGE30US', 'fred', start, end)
-    # df.reset_index(level=0, inplace=True) #df has date as the index. We want it as column
-    print('in Callback')
-    #TBD work with stripping time and date. Date is in string format year/month/day
+    
+    #The start_date and end_date are passed in as strings so we have to reformat
     start_date = re.split(r'\W+', start_date)
     start = datetime.datetime(int(start_date[0]), int(start_date[1]), int(start_date[2]) )
-    
     end_date = re.split(r'\W+', end_date)
     end = datetime.datetime(int(end_date[0]), int(end_date[1]), int(end_date[2]) )
     
-    scatter_list = [] 
-    
-    #start = datetime.datetime (start_date.year, start_date.month, start_date.day)
-    #end = datetime.datetime (end_date.year, end_date.month, end_date.day)
-    print(f'start date is {start}\n')
-    print(f'end date is {end}\n')
-    print(f'symbol is {symbol} type is {type(symbol)}\n')
-    
-    symbol_list = []
+    scatter_list = [] #Contains the list of scatters lines. Each line represents a symbol. 
+    symbol_list = []  #Contains the list of symbols. We need a list because if there is only one 
+                        #symbol, then we cannot use it in the for loop as an iterator. 
     
     if (type(symbol)==str):
         symbol_list.append(symbol)
     else:
         symbol_list = symbol
 
+
+    #Create a go.Scatter object for each symbol. 
     for i in symbol_list: 
         print(f'i symbol is {i}\n')
         df = pdr.DataReader(i, 'fred', start, end)
         df.reset_index(level=0, inplace=True) #df has date as the index. We want it as column
         
-        scatter_list.append(go.Scatter(x=df.iloc[:,0], y=df.iloc[:,1], mode='lines'))
+        scatter_list.append(go.Scatter(x=df.iloc[:,0], y=df.iloc[:,1], name=i, mode='lines'))
         
 
     figure = {'data':scatter_list,
               'layout':go.Layout(title='FRED',
                            xaxis={'title':df.columns[0]},
-                           yaxis={'title':df.columns[1]}) }
+                           yaxis={'title':'Interest Rate'}) }
     return figure
 
 
